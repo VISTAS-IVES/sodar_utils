@@ -58,7 +58,7 @@ class Classification:
 
         self._dataset = build_night_classification(sdr_path, cls_path)
 
-    def get(self, field, policy=RAW|ALL, phenomena=None, fill_value=None, max_row=41):
+    def get(self, field, policy=RAW|ALL, phenomena=None, fill_value=None, max_row=41, min_row=0):
         """ Returns a view of the dataset based on given extraction policies.
             :param field The classification field you wish to extract.
             :param policy The extraction policy. Uses bitwise combinations from EXTRACTION_POLICIES and NODATA_POLICIES
@@ -106,8 +106,20 @@ class Classification:
 
         if max_row > 41:
             raise ValueError("Can't set max_row > 41.")
-        elif max_row < 41:
-            result = [x[:,:max_row] for x in result]
+        elif max_row < 0:
+            raise ValueError("Can't set max_row < 0.")
+        elif min_row < 0:
+            raise ValueError("Can't set min_row < 0.")
+        elif min_row > 41:
+            raise ValueError("Can't set min_row > 41.")
+        elif min_row > max_row:
+            raise ValueError("Can't set min_row > max_row.")
+            #result = [x[:,min_row:] for x in result]
+
+        result = [x[:,min_row:max_row].copy() for x in result]
+
+        print('Output size:')
+        print(result[0].shape)
 
         # Apply nodata policy
         if nodata == RAW:
